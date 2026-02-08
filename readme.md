@@ -8,7 +8,7 @@ The system is composed of several decoupled services that communicate via a Redi
 
 * **API Gateway (`gateway.js`):** The entry point. Accepts HTTP requests, validates them, and publishes events to Redis. It also auto-seeds the database on startup. Running on port 3000
 * **Message Broker (Redis):** Queues and routes messages to the correct consumer services.
-* **Cron Job (`broker.js`):** Request broker serves to publish and subscribe for messages
+* **Broker Service (`broker.js`):** Request broker serves to publish and subscribe for messages
 * **Consumer Services:** Independent Node.js processes that listen for specific events and update the shared SQLite database:
 * `consumer-add`: Handles `dino_added`
 * `consumer-remove`: Handles `dino_removed`
@@ -16,11 +16,11 @@ The system is composed of several decoupled services that communicate via a Redi
 * `consumer-feed`: Handles `dino_fed`
 * `consumer-maintenance`: Handles `maintenance_performed`
 * **Cron Job (`cron-job.js`):** A background service that runs every 5 seconds to update dinosaur hunger and grid safety status.
-* **Cron Job (`db.js`):** Is used by all the services to interact with the DB and to initalize the DB on startup/
+* **Data base service (`db.js`):** Is used by all the services to interact with the DB and to initalize the DB on startup.
 * **Dashboard (`dino_park.js`):** A visual UI running on port 3001 to view the live grid status.
 * **Shared Database:** A persistent SQLite database (`park.db`) accessed by all services via a shared Docker volume.
 
-![Alt text](./images/Dino_park_Architecture.svg "Optional title")
+![Alt text](./images/Dino_park_Architecture.svg "Architecture")
 
 ## 📂 Project Structure
 
@@ -90,6 +90,8 @@ https://dinoparks.herokuapp.com/nudls/feed
 
 To manually trigger an event, send a POST request to the gateway.
 
+It can handle both single json objects or a list of json objects.
+
 **Endpoint:** `POST http://localhost:3000/event`
 
 **Example Payload (Add Dino):**
@@ -129,37 +131,30 @@ Visit **http://localhost:3001** to view the Park Operations Dashboard.
 * **Red Cells:** Unsafe (Hungry Carnivores).
 * **Wrench Icon:** Maintenance is required.
 
-## 🛠 Troubleshooting
-
-**1. "Database not found" or empty data**
-Ensure the Docker volume is mounting correctly. The services expect the DB at `/data/park.db`.
-
-* Check if the `park_data/` folder exists in your project root.
-* If data seems stuck, run `docker-compose down` to force the SQLite WAL file to merge.
-
-**2. Port Conflicts**
-If you see `EADDRINUSE`, stop other processes on ports 3000, 3001, or 6379.
-
-```bash
-docker-compose down
-docker-compose up
-
-```
-
-**3. Redis Connection Error**
-Ensure Docker Desktop is running. The services connect to the host `redis` (defined in docker-compose), not `localhost`.
-
-
+# What you would do differently if you had to do it again
 
 Doing this assesment has taught me a lot. Impelenting changes earlier than later can have big impact on a project for example if better error logic was imlimented early on it is much more difficult to add it in later. Here are some important things I had wish I had done differently
 
 * Scheme checking for requests. This would ensure more robust request handeling.
-* Write to database on error not just graceful shutdown
-* Proper checking for ordering of queue, being processed in the order received or according to time stamps
-* Run feed get request on every startup to receive missing posts in down time. 
-When feed is reuploaded after startup check for events already processed and not to reprocess them.
-No dead letter queue added or retry system
-Use better libraries that are not going to be deprecated of give warnings of memory leaks
+* Write to database on error not just graceful shutdown. This would prevent data loss
+* Proper checking for ordering of queue, being processed in the order received or according to time stamps.
+* Run feed get request on every startup to receive missing posts in down time. Currently does not fetch the feed on subseqant startups.
+* When feed is reuploaded after startup check for events already processed and not to reprocess them.
+* No dead letter queue added or retry system.
+* Use better libraries that are not going to be deprecated of give warnings of memory leaks.
+
+# What you learned during the project 
+
+I sure did learn a lot in this project. There are many technologies I have never worked with that I work here for the first time. 
+
+* I have interacted with Redis a lot at previous jobs, never have I had to create and use it myself.
+* I have used Docker for small home setup things on my own network and linux machine. Was nice learning more in-depth about it.
+* Knew theoretically about a Pub/Sub system, but never implimented it myself. Was really fun to do.
+* I have never created a webapp from scratch, I have always used Javascrit and Typescript to interact with other systems, never to build one up.
+* I learned how to make a .md file look nice.
+* How complicated data in Containers and Memory can be to write to disk.
+* How to use SQL Lite for the first time.
+* How well AI can help, but also the gaps it has.
 
 
 
@@ -180,7 +175,7 @@ Use better libraries that are not going to be deprecated of give warnings of mem
 
 # NUDLS (New Unified Dinopark Logging System) Developer Documentation
 
-## Version 1.4.7-a5, build 10
+### Version 1.4.7-a5, build 10
 
 NUDLS is a system for allowing employees of Dinoparks Amusement and
 Betting Company GMBH access to an unfiltered view of park operations.
