@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DinoParks Dashboard</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            background-color: #f0f4f8; 
+            padding: 20px; 
+            margin: 0; 
+        }
+        
+        /* Header & Logo */
+        .header { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 20px; 
+        }
+        .logo { 
+            height: 60px; 
+            margin-right: 20px; 
+        }
+        
+        /* Main Card */
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            max-width: 1100px; 
+            margin: auto; 
+        }
+
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 15px; 
+            color: #334155;
+        }
+
+        /* --- GRID STYLING --- */
+        .grid-container { 
+            display: grid; 
+            /* 30px for row labels (left), then 26 equal columns for A-Z */
+            grid-template-columns: 30px repeat(26, 1fr); 
+            gap: 1px; 
+            background-color: #cbd5e1;
+            border: 1px solid #cbd5e1;
+        }
+
+        .cell { 
+            background: white; 
+            aspect-ratio: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            position: relative;
+            min-height: 25px;
+            min-width: 25px;
+        }
+
+        /* Styling for the labels (1-16 and A-Z) */
+        .label { 
+            background: #f1f5f9; 
+            color: #64748b; 
+            font-size: 11px; 
+            font-weight: bold;
+            border: none;
+        }
+
+        /* Grid Status Colors */
+        .status-safe { 
+            background-color: #10b981 !important; /* Green */
+            color: white;
+        }
+        .status-unsafe { 
+            background-color: #ef4444 !important; /* Red */
+            color: white;
+        }
+        .status-na { 
+            background-color: #ffffff !important; 
+        }
+
+        /* Wrench Icon */
+        .wrench-icon { 
+            width: 70%; 
+            height: 70%; 
+            opacity: 0.8;
+        }
+        
+        /* Debug info */
+        .debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="/dinoparks-logo.png" class="logo" alt="DinoParks">
+        <h1>Park Operations</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Park Zones</h2>
+            <h3 id="current-date" style="color: #64748b; font-weight: normal;"></h3>
+        </div>
+        
+        <div id="grid" class="grid-container"></div>
+        
+        <!-- Debug info -->
+        <div id="debug" class="debug-info">
+            <div>Last updated: <span id="last-updated">Never</span></div>
+            <div>Data points: <span id="data-count">0</span></div>
+            <div>Status: <span id="status">Waiting for data...</span></div>
+        </div>
+    </div>
+
+    <script>
+        const columns = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        const rowStart = 1;
+        const rowEnd = 16;
+        const rowCount = rowEnd - rowStart + 1; // 16 rows (1-16)
+        
+        function initGrid() {
+            const gridEl = document.getElementById('grid');
+            const dateEl = document.getElementById('current-date');
+            
+            // Set Date
+            const now = new Date();
+            dateEl.innerText = now.toLocaleDateString('en-GB', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+
+            let gridHtml = '';
+
+            // 1. GENERATE ROWS (1 to 16)
+            for (let r = rowStart; r <= rowEnd; r++) {
+                
+                // A. Left Label (The Row Number)
+                gridHtml += `<div class="cell label">${r}</div>`;
+
+                // B. The Data Cells (A-Z for this row)
+                columns.forEach(col => {
+                    // ID format: cell-A1, cell-B2, cell-C16, etc.
+                    const cellId = `cell-${col}${r}`;
+                    gridHtml += `<div class="cell" id="${cellId}" title="${col}${r}"></div>`;
+                });
+            }
+
+            // 2. GENERATE BOTTOM LABELS (A-Z)
+            
+            // A. Bottom-Left Corner (Empty)
+            gridHtml += `<div class="cell label"></div>`;
+
+            // B. Letter Labels
+            columns.forEach(col => {
+                gridHtml += `<div class="cell label">${col}</div>`;
+            });
+
+            // Inject HTML
+            gridEl.innerHTML = gridHtml;
+            console.log(`Grid initialized with rows ${rowStart}-${rowEnd} and ${columns.length} columns`);
+            console.log(`Expected cell IDs: cell-A1 through cell-Z16`);
+        }
+
+        async function updateGrid() {
+            const debugEl = document.getElementById('debug');
+            const statusEl = document.getElementById('status');
+            const lastUpdatedEl = document.getElementById('last-updated');
+            const dataCountEl = document.getElementById('data-count');
+            
+            try {
+                statusEl.textContent = 'Fetching data...';
+                const response = await fetch('/api/grid');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                // Update debug info
+                dataCountEl.textContent = data.length;
+                lastUpdatedEl.textContent = new Date().toLocaleTimeString();
+                
+                // Reset all cells first
+                document.querySelectorAll('.cell:not(.label)').forEach(cell => {
+                    cell.className = 'cell';
+                    cell.innerHTML = '';
+                    cell.title = cell.id.replace('cell-', '');
+                });
+                
+                // Apply data to cells
+                let appliedCount = 0;
+                data.forEach(item => {
+                    // Ensure location is in correct format (e.g., "A1", "B16")
+                    const location = String(item.location).toUpperCase();
+                    const cell = document.getElementById(`cell-${location}`);
+                    
+                    if (cell) {
+                        // Reset classes
+                        cell.className = 'cell';
+                        
+                        // Apply status class
+                        if (item.grid_status === 'Safe') {
+                            cell.classList.add('status-safe');
+                        } else if (item.grid_status === 'Unsafe') {
+                            cell.classList.add('status-unsafe');
+                        } else {
+                            cell.classList.add('status-na');
+                        }
+
+                        // Add wrench icon if repair is needed
+                        if (item.repair_required === 1 || item.repair_required === 'true' || item.repair_required === true) {
+                            cell.innerHTML = '<img src="/dino-parks-wrench.png" class="wrench-icon">';
+                        }
+                        
+                        // Update title with status info
+                        cell.title = `${location}: ${item.grid_status}${item.repair_required ? ' (Repair needed)' : ''}`;
+                        
+                        appliedCount++;
+                    } else {
+                        console.warn(`Cell not found: cell-${location}. Expected format: A1 through Z16`);
+                    }
+                });
+                
+                statusEl.textContent = `Data applied: ${appliedCount}/${data.length} cells updated`;
+                console.log(`Updated ${appliedCount} cells`);
+                
+            } catch (error) {
+                console.error("Error fetching grid data:", error);
+                statusEl.textContent = `Error: ${error.message}`;
+                statusEl.style.color = '#ef4444';
+            }
+        }
+
+        // Initialize and Start Polling
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing grid...');
+            initGrid();
+            updateGrid();
+            
+            // Update every 5 seconds for debugging, then switch to 60 seconds
+            setInterval(updateGrid, 5000);
+        });
+        
+        // Manual refresh with R key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                console.log('Manual refresh triggered');
+                updateGrid();
+            }
+        });
+        
+        console.log('Script loaded. Press R to manually refresh grid.');
+    </script>
+</body>
+</html>

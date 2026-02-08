@@ -1,0 +1,122 @@
+services:
+  # 1. The Message Broker
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - park-net
+
+  # 2. The API Gateway (Entry Point)
+  gateway:
+    build: .
+    command: node gateway.js
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_HOST=redis
+      - DB_FILE=/data/park.db
+    volumes:
+      - ./park_data:/data  # Persist DB to host folder
+    depends_on:
+      - redis
+    networks:
+      - park-net
+
+  # 3. Consumer: Add Dino
+  consumer-add:
+    build: .
+    command: node services/dino-added.js
+    environment:
+      - REDIS_HOST=redis
+      - DB_FILE=/data/park.db
+    volumes:
+      - ./park_data:/data
+    depends_on:
+      - redis
+    networks:
+      - park-net
+
+  # 4. Consumer: Remove Dino
+  consumer-remove:
+    build: .
+    command: node services/dino-removed.js
+    environment:
+      - REDIS_HOST=redis
+      - DB_FILE=/data/park.db
+    volumes:
+      - ./park_data:/data
+    depends_on:
+      - redis
+    networks:
+      - park-net
+
+  # 5. Consumer: Move Dino
+  consumer-move:
+    build: .
+    command: node services/dino-moved.js
+    environment:
+      - REDIS_HOST=redis
+      - DB_FILE=/data/park.db
+    volumes:
+      - ./park_data:/data
+    depends_on:
+      - redis
+    networks:
+      - park-net
+
+  # 6. Consumer: Feed Dino
+  consumer-feed:
+    build: .
+    command: node services/dino-fed.js
+    environment:
+      - REDIS_HOST=redis
+      - DB_FILE=/data/park.db
+    volumes:
+      - ./park_data:/data
+    depends_on:
+      - redis
+    networks:
+      - park-net
+
+  # 7. Consumer: Maintenance
+  consumer-maintenance:
+    build: .
+    command: node services/maintenance.js
+    environment:
+      - REDIS_HOST=redis
+      - DB_FILE=/data/park.db
+    volumes:
+      - ./park_data:/data
+    depends_on:
+      - redis
+    networks:
+      - park-net
+
+  # 8. Scheduled Cron Job (Status Updates)
+  cron-job:
+    build: .
+    command: node cron-job.js
+    environment:
+      - DB_FILE=/data/park.db
+    volumes:
+      - ./park_data:/data
+    networks:
+      - park-net
+  
+  # 9. Dashboard UI
+  dashboard:
+    build: .
+    command: node dino_park.js
+    ports:
+      - "3001:3001"
+    environment:
+      - DB_FILE=/data/park.db
+    volumes:
+      - ./park_data:/data
+    networks:
+      - park-net
+
+networks:
+  park-net:
+    driver: bridge

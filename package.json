@@ -1,0 +1,16 @@
+{
+  "name": "park-system",
+  "version": "1.0.0",
+  "description": "Event driven park system",
+  "main": "gateway.js",
+  "scripts": {
+    "start": "node gateway.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2",
+    "ioredis": "^5.3.2",
+    "sqlite3": "^5.1.7",
+    "ejs": "^3.1.9"
+  }
+}
