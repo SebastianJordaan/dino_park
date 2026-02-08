@@ -1,6 +1,6 @@
 # 🦖 DinoParks Event-Driven System
 
-A microservices-based system for managing dinosaur park operations. This project transitions from a monolithic architecture to an **Event-Driven Architecture (EDA)** using **Node.js**, **Express**, **Redis** (as the message broker), and **Docker**.
+A microservices-based system for managing dinosaur park operations. This project is an **Event-Driven Architecture (EDA)** solution using **Node.js**, **Express**, **Redis** (as the message broker), and **Docker**.
 
 ## 🏗 Architecture
 
@@ -8,7 +8,7 @@ The system is composed of several decoupled services that communicate via a Redi
 
 * **API Gateway (`gateway.js`):** The entry point. Accepts HTTP requests, validates them, and publishes events to Redis. It also auto-seeds the database on startup. Running on port 3000
 * **Message Broker (Redis):** Queues and routes messages to the correct consumer services.
-* **Cron Job (`broker.js`):** Is the request broker serves to publish and to subscribe for messages
+* **Cron Job (`broker.js`):** Request broker serves to publish and subscribe for messages
 * **Consumer Services:** Independent Node.js processes that listen for specific events and update the shared SQLite database:
 * `consumer-add`: Handles `dino_added`
 * `consumer-remove`: Handles `dino_removed`
@@ -22,6 +22,32 @@ The system is composed of several decoupled services that communicate via a Redi
 
 ![Alt text](./images/Dino_park_Architecture.svg "Optional title")
 
+## 📂 Project Structure
+
+```
+
+/park-system
+  ├── db.js                     # Shared Database Connection
+  ├── broker.js                 # Redis Messaging Wrapper
+  ├── gateway.js                # The HTTP Entry Point (Express)
+  ├── services/                 # Consumer logic for each event type
+  │   ├── dino-added.js
+  │   ├── dino-removed.js
+  │   ├── dino-moved.js
+  │   ├── dino-fed.js
+  │   └── maintenance.js
+  ├── cron-job.js               # The background status updater
+  ├── dino_park.js              # Dashboard Server
+  ├── views/
+  │   └── index.ejs
+  ├── public/                   # Images for web server
+  │   ├── dino-parks-wrench.png
+  │   └── dinoparks-logo.png
+  ├── docker-compose.yml        # Container orchestration
+  └── Dockerfile                # Unified build file
+```
+
+#  What you would do differently if you had to do it again 
 
 ## 🚀 Getting Started
 
@@ -123,30 +149,30 @@ docker-compose up
 **3. Redis Connection Error**
 Ensure Docker Desktop is running. The services connect to the host `redis` (defined in docker-compose), not `localhost`.
 
-## 📂 Project Structure
 
-```
 
-/park-system
-  ├── db.js                     # Shared Database Connection
-  ├── broker.js                 # Redis Messaging Wrapper
-  ├── gateway.js                # The HTTP Entry Point (Express)
-  ├── services/                 # Consumer logic for each event type
-  │   ├── dino-added.js
-  │   ├── dino-removed.js
-  │   ├── dino-moved.js
-  │   ├── dino-fed.js
-  │   └── maintenance.js
-  ├── cron-job.js               # The background status updater
-  ├── dino_park.js              # Dashboard Server
-  ├── views/
-  │   └── index.ejs
-  ├── public/                   # Images for web server
-  │   ├── dino-parks-wrench.png
-  │   └── dinoparks-logo.png
-  ├── docker-compose.yml        # Container orchestration
-  └── Dockerfile                # Unified build file
-```
+Doing this assesment has taught me a lot. Impelenting changes earlier than later can have big impact on a project for example if better error logic was imlimented early on it is much more difficult to add it in later. Here are some important things I had wish I had done differently
+
+* Scheme checking for requests. This would ensure more robust request handeling.
+* Write to database on error not just graceful shutdown
+* Proper checking for ordering of queue, being processed in the order received or according to time stamps
+* Run feed get request on every startup to receive missing posts in down time. 
+When feed is reuploaded after startup check for events already processed and not to reprocess them.
+No dead letter queue added or retry system
+Use better libraries that are not going to be deprecated of give warnings of memory leaks
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
