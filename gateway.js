@@ -31,7 +31,7 @@ async function processAndPublish(events) {
   }
 }
 
-// --- Auto-Seeder Logic ---
+// --- Initalize DB with get request from NDLS feed
 function checkAndSeed() {
   // Check if Dinos table is empty
   db.get("SELECT COUNT(*) as count FROM dinos", [], async (err, row) => {
@@ -41,7 +41,6 @@ function checkAndSeed() {
       console.log("[Seeder] Database is empty. Fetching seed data...");
       
       try {
-        // Node 18 has built-in fetch
         const response = await fetch("https://dinoparks.herokuapp.com/nudls/feed");
         
         if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
@@ -75,7 +74,7 @@ app.post("/event", async (req, res) => {
   }
 });
 
-// GET Endpoints (for Dashboard)
+// GET Endpoints For Debugging and easy access to data
 app.get("/dinos", (req, res) => {
   db.all("SELECT * FROM dinos", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });

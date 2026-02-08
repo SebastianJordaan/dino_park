@@ -80,7 +80,7 @@ function updateStatus() {
 }
 
 // --- Start the Scheduler ---
-// Run every 60 seconds (60 * 1000 milliseconds)
+// Run every 5 seconds (5 * 1000 milliseconds)
 console.log("[Cron] Job scheduler started.");
 setInterval(updateStatus, 5 * 1000);
 
