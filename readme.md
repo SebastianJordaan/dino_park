@@ -165,7 +165,7 @@ I sure did learn a lot in this project. There are many technologies I have never
 
 # How do you think we can improve this challenge
 
-* Be more specific about how NUDLS. Is the GET the only way to get data? I implemented a GET at startup and afterwards the POST requests can be fed in one for one.
+* Be more specific about how NUDLS. Is the GET the only way to get data? I implemented a GET at startup and afterwards the POST requests can be fed in one by one.
 * Document mentions rows 0-15 but mock up and test data go from 1-16. Could be updated.
 * Stegosaurus is not a herbivore in the test data. Could be fixed or left in as something funny.
 
