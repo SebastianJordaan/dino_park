@@ -14,4 +14,4 @@ COPY . .
 RUN mkdir -p /data
 
 # Default command (will be overridden in docker-compose)
-CMD ["node", "gateway.js"]
+# CMD ["node", "gateway.js"]

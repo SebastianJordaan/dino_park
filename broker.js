@@ -1,7 +1,7 @@
 const Redis = require("ioredis");
 
-// Use the environment variable 'REDIS_HOST' if running in Docker, else localhost
-const redisHost = process.env.REDIS_HOST || "localhost";
+// Use the environment variable 'REDIS_HOST' running in Docker
+const redisHost = process.env.REDIS_HOST
 
 const publisher = new Redis({ host: redisHost });
 const subscriber = new Redis({ host: redisHost });

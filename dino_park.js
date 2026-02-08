@@ -7,7 +7,6 @@ console.log('Starting DinoParks Dashboard...');
 console.log('Current directory:', __dirname);
 
 // Database connection with logging
-// This allows it to work both locally and inside Docker
 const dbPath = process.env.DB_FILE || path.join(__dirname, 'park.db');
 console.log('Attempting to connect to database at:', dbPath);
 

@@ -8,7 +8,7 @@ The system is composed of several decoupled services that communicate via a Redi
 
 * **API Gateway (`gateway.js`):** The entry point. Accepts HTTP requests, validates them, and publishes events to Redis. It also auto-seeds the database on startup. Running on port 3000
 * **Message Broker (Redis):** Queues and routes messages to the correct consumer services.
-* **Broker Service (`broker.js`):** Request broker serves to publish and subscribe for messages
+* **Broker Service (`broker.js`):** Request broker serves to publish and subscribe for messages for all Consumer Services.
 * **Consumer Services:** Independent Node.js processes that listen for specific events and update the shared SQLite database:
 * `consumer-add`: Handles `dino_added`
 * `consumer-remove`: Handles `dino_removed`
@@ -20,6 +20,7 @@ The system is composed of several decoupled services that communicate via a Redi
 * **Dashboard (`dino_park.js`):** A visual UI running on port 3001 to view the live grid status.
 * **Shared Database:** A persistent SQLite database (`park.db`) accessed by all services via a shared Docker volume.
 
+## Architecture diagram
 ![Alt text](./images/Dino_park_Architecture.svg "Architecture")
 
 ## 📂 Project Structure
@@ -46,8 +47,6 @@ The system is composed of several decoupled services that communicate via a Redi
   ├── docker-compose.yml        # Container orchestration
   └── Dockerfile                # Unified build file
 ```
-
-#  What you would do differently if you had to do it again 
 
 ## 🚀 Getting Started
 
@@ -133,17 +132,19 @@ Visit **http://localhost:3001** to view the Park Operations Dashboard.
 
 # What you would do differently if you had to do it again
 
-Doing this assesment has taught me a lot. Impelenting changes earlier than later can have big impact on a project for example if better error logic was imlimented early on it is much more difficult to add it in later. Here are some important things I had wish I had done differently
+Doing this assessment has taught me a lot. Implementing changes earlier than later can have big impact on a project for example if better error logic was implemented early on it is much more difficult to add it in later. Here are some important things I had wish I had done differently
 
 * Scheme checking for requests. This would ensure more robust request handling.
-* Write to the persistent database on error not just graceful shutdown. This would prevent data loss
-* Proper checking for ordering of queue, being processed in the order received or according to time stamps. Better than my currently implimentation.
+* Write to the persistent database on error not just graceful shutdown. This would prevent data loss.
+* Proper checking for ordering of queue, being processed in the order received or according to time stamps. Better than my current implementation.
 * Run feed GET request on every startup to receive missing posts in down time. Currently does not fetch the feed on subsequent startups.
 * When feed is reuploaded after startup check for events already processed and not to reprocess them.
 * No dead letter queue added or retry system.
 * Use better libraries that are not going to be deprecated or give warnings of memory leaks.
-* Handle race conditions better with the Pub/Sub archetechture.
-
+* Handle race conditions better with the Pub/Sub architecture instead of using sleep() to fix it, breaking the whole point of the Pub/Sub system.
+* Add unit tests.
+* Impliment container managment like checking container health status and restart on failure.
+* Impliment a globally sequential Pub/Sub system to ensure correct processing. Kafka can also be explored.
 
 # What you learned during the project 
 
@@ -159,7 +160,7 @@ I sure did learn a lot in this project. There are many technologies I have never
 * How well AI can help, but also the gaps it has.
 * Ordering in a Pub/Sub process is difficult.
 * A lot about race conditions and Pub/Sub systems.
-
+* Explore many opptions afterwards to see how this ordering Pub/Sub problem can be solved next time.
 
 
 # How do you think we can improve this challenge
@@ -167,6 +168,10 @@ I sure did learn a lot in this project. There are many technologies I have never
 * Be more specific about how NUDLS. Is the GET the only way to get data? I implemented a GET at startup and afterwards the POST requests can be fed in one for one.
 * Document mentions rows 0-15 but mock up and test data go from 1-16. Could be updated.
 * Stegosaurus is not a herbivore in the test data. Could be fixed or left in as something funny.
+
+
+
+
 
 
 
