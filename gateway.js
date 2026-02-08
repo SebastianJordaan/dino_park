@@ -6,19 +6,15 @@ const db = require("./db");
 const app = express();
 app.use(bodyParser.json());
 
-// --- Helper: Publish Events to Broker (Sequentially & Sorted) ---
+// Helper for throttling (Race condition)
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function processAndPublish(events, source = "API") {
-  // 1. Normalize to array
   let eventList = Array.isArray(events) ? events : [events];
 
   if (eventList.length > 1) {
-    console.log(`[${source}] Sorting ${eventList.length} events by timestamp...`);
-    
-    // 2. CRITICAL: Sort Oldest -> Newest
-    // This ensures 'dino_added' always happens before 'dino_fed'
-    eventList.sort((a, b) => {
-      return new Date(a.time) - new Date(b.time);
-    });
+    console.log(`[${source}] Sorting ${eventList.length} events...`);
+    eventList.sort((a, b) => new Date(a.time) - new Date(b.time));
   }
 
   const eventMap = {
@@ -29,48 +25,42 @@ async function processAndPublish(events, source = "API") {
     "maintenance_performed": "service:maintenance"
   };
 
-  // 3. Publish One by One
+  let successCount = 0;
+
   for (const event of eventList) {
-    const channel = eventMap[event.kind];
-    if (channel) {
-      // We use 'await' here to ensure Order is preserved in the Redis Queue
-      await broker.publish(channel, event);
-    } else {
-      console.warn(`[${source}] Skipped unknown event kind: ${event.kind}`);
+    try {
+      const channel = eventMap[event.kind];
+      if (channel) {
+        // We await the broker publish to ensure sequential order in the pipe
+        await broker.publish(channel, event);
+        
+        // (Race condition prevention) Figuring out how to fix the race conditions properly is very dificult
+        await sleep(150); 
+        
+        successCount++;
+        if (successCount % 10 === 0) console.log(`[${source}] Progress: ${successCount}/${eventList.length}`);
+      }
+    } catch (err) {
+      // If one fails, log it but DON'T stop the loop
+      console.error(`[${source}] Failed to publish event ${event.id || event.kind}:`, err.message);
     }
   }
   
-  console.log(`[${source}] Successfully published ${eventList.length} events.`);
+  console.log(`[${source}] Finished. Published ${successCount} of ${eventList.length} events.`);
 }
 
-// --- Auto-Seeder Logic ---
+// --- Seeder and Endpoints  ---
+
 function checkAndSeed() {
   db.get("SELECT COUNT(*) as count FROM dinos", [], async (err, row) => {
     if (err) return console.error("[Seeder] DB Check failed:", err);
-
-    if (row.count === 0) {
-      console.log("[Seeder] Database is empty. Fetching seed data...");
-      
+    if (row && row.count === 0) {
+      console.log("[Seeder] Database empty. Fetching data...");
       try {
-        // Fetch data from external API
         const response = await fetch("https://dinoparks.herokuapp.com/nudls/feed");
-        
-        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-        
         const seedEvents = await response.json();
-        
-        console.log(`[Seeder] Downloaded ${seedEvents.length} raw events.`);
-        
-        // --- THIS CALL NOW HANDLES THE SORTING ---
-        // We pass "Seeder" as the source label for better logs
         await processAndPublish(seedEvents, "Seeder");
-        
-        console.log("[Seeder] Initialization complete.");
-      } catch (fetchError) {
-        console.error("[Seeder] Failed to fetch seed data:", fetchError.message);
-      }
-    } else {
-      console.log(`[Seeder] Database already contains ${row.count} dinos. Skipping seed.`);
+      } catch (e) { console.error("[Seeder] Error:", e.message); }
     }
   });
 }

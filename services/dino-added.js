@@ -1,6 +1,7 @@
 const broker = require("../broker");
 const db = require("../db");
 
+// Assume dino starts hungry when entering park for safety
 broker.subscribe("service:dino_add", (event) => {
   const stmt = db.prepare(`INSERT INTO dinos 
     (id, name, species, gender, digestion_period_in_hours, herbivore, time, park_id, location, is_hungry)

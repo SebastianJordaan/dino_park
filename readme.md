@@ -120,8 +120,8 @@ It can handle both single json objects or a list of json objects.
 
 ### 2. View Data (GET)
 
-* **Get All Dinos:** `GET http://localhost:3000/dinos`
-* **Get Grid Status:** `GET http://localhost:3000/grid`
+* **Get All Dinos:** `GET http://localhost:3000/dinos` use to check data
+* **Get Grid Status:** `GET http://localhost:3000/grid` use to check data
 
 ## 🖥 Dashboard
 
@@ -135,13 +135,15 @@ Visit **http://localhost:3001** to view the Park Operations Dashboard.
 
 Doing this assesment has taught me a lot. Impelenting changes earlier than later can have big impact on a project for example if better error logic was imlimented early on it is much more difficult to add it in later. Here are some important things I had wish I had done differently
 
-* Scheme checking for requests. This would ensure more robust request handeling.
-* Write to database on error not just graceful shutdown. This would prevent data loss
-* Proper checking for ordering of queue, being processed in the order received or according to time stamps.
-* Run feed get request on every startup to receive missing posts in down time. Currently does not fetch the feed on subseqant startups.
+* Scheme checking for requests. This would ensure more robust request handling.
+* Write to the persistent database on error not just graceful shutdown. This would prevent data loss
+* Proper checking for ordering of queue, being processed in the order received or according to time stamps. Better than my currently implimentation.
+* Run feed GET request on every startup to receive missing posts in down time. Currently does not fetch the feed on subsequent startups.
 * When feed is reuploaded after startup check for events already processed and not to reprocess them.
 * No dead letter queue added or retry system.
-* Use better libraries that are not going to be deprecated of give warnings of memory leaks.
+* Use better libraries that are not going to be deprecated or give warnings of memory leaks.
+* Handle race conditions better with the Pub/Sub archetechture.
+
 
 # What you learned during the project 
 
@@ -149,21 +151,22 @@ I sure did learn a lot in this project. There are many technologies I have never
 
 * I have interacted with Redis a lot at previous jobs, never have I had to create and use it myself.
 * I have used Docker for small home setup things on my own network and linux machine. Was nice learning more in-depth about it.
-* Knew theoretically about a Pub/Sub system, but never implimented it myself. Was really fun to do.
-* I have never created a webapp from scratch, I have always used Javascrit and Typescript to interact with other systems, never to build one up.
+* Knew theoretically about a Pub/Sub system, but never implemented it myself. Was really fun to do.
+* I have never created a webapp from scratch, I have always used Javascript and Typescript to interact with other systems, never to build one up.
 * I learned how to make a .md file look nice.
 * How complicated data in Containers and Memory can be to write to disk.
 * How to use SQL Lite for the first time.
 * How well AI can help, but also the gaps it has.
+* Ordering in a Pub/Sub process is difficult.
+* A lot about race conditions and Pub/Sub systems.
 
 
 
+# How do you think we can improve this challenge
 
-
-
-
-
-
+* Be more specific about how NUDLS. Is the GET the only way to get data? I implemented a GET at startup and afterwards the POST requests can be fed in one for one.
+* Document mentions rows 0-15 but mock up and test data go from 1-16. Could be updated.
+* Stegosaurus is not a herbivore in the test data. Could be fixed or left in as something funny.
 
 
 

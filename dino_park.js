@@ -18,13 +18,6 @@ const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CR
         console.error('❌ DATABASE CONNECTION FAILED:', err.message);
         console.error('Error details:', err);
         
-        // Provide troubleshooting tips
-        console.log('\n🔧 Troubleshooting tips:');
-        console.log('1. Check if park_data/ folder exists');
-        console.log('2. Verify park.db file exists in park_data/');
-        console.log('3. Check file permissions (read/write)');
-        console.log('4. Ensure SQLite3 is properly installed');
-        
         process.exit(1); // Exit if database connection fails
     } else {
         console.log('✅ DATABASE CONNECTION ESTABLISHED');

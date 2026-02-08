@@ -14,7 +14,7 @@ broker.subscribe("service:dino_move", (event) => {
     (err) => {
       if (err) return console.error("Move failed:", err);
       
-      // Update Grid Logic
+      // Update Grid Logic - schedule maintenance for 30 days later if dino has entered area
       const maintenanceDue = add30Days(event.time);
       db.run(
         "UPDATE grid SET lastVisited = ?, maintenanceDue = CASE WHEN maintenanceDue IS NULL THEN ? ELSE maintenanceDue END WHERE location = ?",
