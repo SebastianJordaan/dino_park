@@ -140,3 +140,103 @@ Ensure Docker Desktop is running. The services connect to the host `redis` (defi
   ├── docker-compose.yml        # Container orchestration
   └── Dockerfile                # Unified build file
 ```
+
+
+
+# Original API documentation cleaned up
+
+# NUDLS (New Unified Dinopark Logging System) Developer Documentation
+
+## Version 1.4.7-a5, build 10
+
+NUDLS is a system for allowing employees of Dinoparks Amusement and
+Betting Company GMBH access to an unfiltered view of park operations.
+NUDLS uses the new JSON (JavaScript Object Notation) spec which was just
+ratified.
+
+NUDLS uses the idea of a global persistent log as a unifying abstraction.
+After adding a new system, NUDLS sends the newly integrated system all
+previously persisted events one by one. NUDLS uses the HTTP (Hypertext
+Transfer Protocol) as a transport mechanism, sending logged messages using
+a POST (Personal Object Store Transfer) request.
+
+NUDLS uses ISO standards for all datatime needs.
+
+# Event Types
+
+## 1. Dino Added
+This event is called when new animals are added to the park. Digestion
+period should be used to inform feeding schedule.
+The body of this request may be any one of the following kinds (along with
+a sample message attached)
+
+**Sample Message:**
+```json
+{
+    "kind": "dino_added",
+    "name": "McGroggity",
+    "species": "Tyrannosaurus rex",
+    "gender": "male",
+    "id": 1032,
+    "digestion_period_in_hours": 48,
+    "herbivore": false,
+    "time": "2018-04-20T11:50:53.460Z",
+    "park_id": 1
+}
+```
+
+## 2. Dino Removed
+This event is called when an animal is removed from the park
+
+**Sample Message:**
+```json
+{
+    "kind": "dino_removed",
+    "id": 1032 ,
+    "time": "2018-04-20T11:50:53.460Z",
+    "park id": 1
+}
+```
+## 3. Dino Location Updated
+This event is called when an animal moves to a different cell in a
+standardized park grid.
+
+**Sample Message:**
+```json
+{
+    "kind": "dino_location_updated",
+    "location": "E10",
+    "dinosaur_id": 1032,
+    "time": "2018-04-20T11:50:53.460Z",
+    "park_id": 1
+}
+```
+## 4. Dino Fed
+Indicates when a dinosaur was fed
+
+**Sample Message:**
+```json
+{
+    "kind": "dino_fed",
+    "id": 1032,
+    "time": "2018-04-20T11:50:53.460Z",
+    "park_id": 1
+}
+```
+
+## 5. Maintainence Performed
+Indicates that a routine maintenance pass was made at the given cell
+in the standardized park grid. Please see Winged Avengers: The
+Dinopark Employee Handbook and Survival Guide, Page 107 for full
+details on what routine maintenance activities activities entail and
+how it may affect you
+
+**Sample Message:**
+```json
+{
+    "kind": "maintenance_performed",
+    "location": "E7",
+    "time": "2018-04-20T11:50:53.460Z",
+    "park_id": 1
+}
+```
