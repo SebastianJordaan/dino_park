@@ -6,31 +6,34 @@ A microservices-based system for managing dinosaur park operations. This project
 
 The system is composed of several decoupled services that communicate via a Redis message broker.
 
-* **API Gateway (`gateway.js`):** The entry point. Accepts HTTP requests, validates them, and publishes events to Redis. It also auto-seeds the database on startup.
+* **API Gateway (`gateway.js`):** The entry point. Accepts HTTP requests, validates them, and publishes events to Redis. It also auto-seeds the database on startup. Running on port 3000
 * **Message Broker (Redis):** Queues and routes messages to the correct consumer services.
+* **Cron Job (`broker.js`):** Is the request broker serves to publish and to subscribe for messages
 * **Consumer Services:** Independent Node.js processes that listen for specific events and update the shared SQLite database:
 * `consumer-add`: Handles `dino_added`
 * `consumer-remove`: Handles `dino_removed`
 * `consumer-move`: Handles `dino_location_updated`
 * `consumer-feed`: Handles `dino_fed`
 * `consumer-maintenance`: Handles `maintenance_performed`
-
-
-* **Cron Job (`cron-job.js`):** A background service that runs every 60 seconds to update dinosaur hunger and grid safety status.
+* **Cron Job (`cron-job.js`):** A background service that runs every 5 seconds to update dinosaur hunger and grid safety status.
+* **Cron Job (`db.js`):** Is used by all the services to interact with the DB and to initalize the DB on startup/
 * **Dashboard (`dino_park.js`):** A visual UI running on port 3001 to view the live grid status.
 * **Shared Database:** A persistent SQLite database (`park.db`) accessed by all services via a shared Docker volume.
+
+![Alt text](./images/Dino_park_Architecture.svg "Optional title")
+
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running with a working WSL.
 
 ### Installation & Run
 
 1. **Clone the repository:**
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/SebastianJordaan/dino_park
 cd <your-repo-folder>
 
 ```
@@ -48,8 +51,12 @@ docker-compose up --build
 * **API Gateway:** `http://localhost:3000`
 * **Dashboard:** `http://localhost:3001`
 
+4. **On startup**
 
-*Note: On first startup, the system will automatically fetch seed data from the external API and populate the grid.*
+On first startup and only first startup, the system will automatically fetch seed data from the external API and populate the grid from URL
+https://dinoparks.herokuapp.com/nudls/feed
+
+
 
 ## 📡 API Endpoints
 
