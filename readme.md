@@ -119,19 +119,24 @@ Ensure Docker Desktop is running. The services connect to the host `redis` (defi
 ## 📂 Project Structure
 
 ```
-├── services/               # Consumer logic for each event type
-│   ├── dino-added.js
-│   ├── dino-fed.js
-│   └── ...
-├── views/                  # EJS Templates for Dashboard
-│   └── index.ejs
-├── park_data/              # Persisted SQLite database (created on runtime)
-├── gateway.js              # API Gateway & Auto-Seeder
-├── broker.js               # Redis wrapper
-├── db.js                   # Shared Database connection
-├── cron-job.js             # Scheduled tasks (Hunger/Safety checks)
-├── dino_park.js            # Dashboard Server
-├── docker-compose.yml      # Container orchestration
-└── Dockerfile              # Unified build file
 
+/park-system
+  ├── db.js                     # Shared Database Connection
+  ├── broker.js                 # Redis Messaging Wrapper
+  ├── gateway.js                # The HTTP Entry Point (Express)
+  ├── services/                 # Consumer logic for each event type
+  │   ├── dino-added.js
+  │   ├── dino-removed.js
+  │   ├── dino-moved.js
+  │   ├── dino-fed.js
+  │   └── maintenance.js
+  ├── cron-job.js               # The background status updater
+  ├── dino_park.js              # Dashboard Server
+  ├── views/
+  │   └── index.ejs
+  ├── public/                   # Images for web server
+  │   ├── dino-parks-wrench.png
+  │   └── dinoparks-logo.png
+  ├── docker-compose.yml        # Container orchestration
+  └── Dockerfile                # Unified build file
 ```
